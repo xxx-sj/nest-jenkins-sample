@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:19.03.12-dind' // Docker-in-Docker 이미지 사용
-            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     environment {
         REGISTRY_URL = 'https://ncloudregistry.com'
@@ -102,6 +97,12 @@ pipeline {
             steps {
                 script {
                     sh "docker tag ${DOCKER_IMAGE}:${IMAGE_TAG} ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
+                }
+            }
+
+            post {
+                failure {
+                    sh 'echo "Tag Docker Image failed"'
                 }
             }
         }
