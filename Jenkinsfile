@@ -68,12 +68,12 @@ pipeline {
 
             post {
                 failure {
-                    sh 'build coker image failed'
+                    sh 'echo "Build Docker image failed"'
                 }
             }
         }
 
-        stage("Tag docker image") {
+        stage('Tag Docker Image') {
             steps {
                 script {
                     sh "docker tag ${DOCKER_IMAGE}:${IMAGE_TAG} ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
