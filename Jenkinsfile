@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'alpine:latest'
+            image 'docker:19.03.12-dind' // Docker-in-Docker 이미지 사용
             args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
@@ -18,12 +18,9 @@ pipeline {
         GITHUB_URL = 'https://github.com/xxx-sj/nest-jenkins-sample.git'
     }
 
-
     tools {
-        // NodeJS 설치 (Jenkins에 NodeJS Plugin이 설치되어 있어야 합니다)
-        nodejs 'nodeJS' // NodeJS 설치 이름
+        nodejs 'nodeJS' // Jenkins에 설치된 NodeJS 툴 이름
     }
-
 
     stages {
         stage('Checkout') {
@@ -31,7 +28,6 @@ pipeline {
                 git branch: 'master',
                     url: "${GITHUB_URL}"
             }
-
 
             post {
                 success {
@@ -53,13 +49,13 @@ pipeline {
                     service docker start &&
                     dockerd &
 
-                    # Wait for Docker Daemon to start
+                    # Docker 데몬이 시작될 때까지 대기
                     while (! docker info > /dev/null 2>&1); do
                       echo "Waiting for Docker Daemon to start..."
                       sleep 1
                     done
 
-                    # Add Jenkins user to Docker group
+                    # Jenkins 사용자를 Docker 그룹에 추가
                     addgroup -S docker || true
                     adduser -S jenkins || true
                     addgroup jenkins docker || true
@@ -71,27 +67,25 @@ pipeline {
         
         stage('Build') {
             steps {
-                // npm 명령어를 사용하여 빌드
                 sh 'npm install'
                 sh 'npm run build'
             }
 
             post {
                 failure {
-                    sh 'build failed'
+                    sh 'echo "build failed"'
                 }
             }
         }
         
         stage('Test') {
             steps {
-                // npm 명령어를 사용하여 테스트
                 sh 'npm test'
             }
 
             post {
                 failure {
-                    sh 'test failed'
+                    sh 'echo "test failed"'
                 }
             }
         }
@@ -127,6 +121,7 @@ pipeline {
                     sh "docker push ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                 }
             }
+
             post {
                 failure {
                     sh 'echo "Push to registry failed"'
@@ -144,7 +139,8 @@ pipeline {
                     EOF
                     """
                 }
-            } 
+            }
+
             post {
                 failure {
                     sh 'echo "Deploy failed"'
@@ -155,10 +151,10 @@ pipeline {
         stage('Cleanup') {
             steps {
                 sh '''
-                    # Clean up Docker images and containers
+                    # Docker 이미지 및 컨테이너 정리
                     docker system prune -a -f --volumes
 
-                    # Clean up temporary files and caches
+                    # 임시 파일 및 캐시 정리
                     rm -rf /tmp/*
                     rm -rf /var/cache/apk/*
                 '''
