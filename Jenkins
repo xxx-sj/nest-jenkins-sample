@@ -35,7 +35,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${DOCKER_IMAGE}")
+                    dockerImage = docker.build("${DOCKER_IMAGE}")                    
                 }
             }
         }
@@ -43,9 +43,12 @@ pipeline {
         stage('Push to ncloud registry') {
             steps {
                 script {
-                    docker.withRegistry("${REGISTRY_URL}", "${REGISTRY_CREDENTIALS_ID}") {
-                        dockerImage.push()
-                    }
+                    docker login dev-overay-studio-server.kr.ncr.ntruss.com
+                    docker push dev-overay-studio-server.kr.ncr.ntruss.com/<TARGET_IMAGE[:TAG]>
+                    docker pull dev-overay-studio-server.kr.ncr.ntruss.com/<TARGET_IMAGE[:TAG]>
+                    // docker.withRegistry("${REGISTRY_URL}", "${REGISTRY_CREDENTIALS_ID}") {
+                    //     dockerImage.push()
+                    // }
                 }
             }
         }
@@ -56,7 +59,7 @@ pipeline {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${SSH_USER}@${PUBLIC_SUBNET_IP} << EOF
                     docker pull ${DOCKER_IMAGE}
-                    docker run -d -p 80:80 ${DOCKER_IMAGE}
+                    docker run -d -p 3001:3001 ${DOCKER_IMAGE}
                     EOF
                     """
                 }
