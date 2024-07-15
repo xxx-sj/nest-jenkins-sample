@@ -18,9 +18,10 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch 'master'
-                url ${GITHUB_URL}
+                git branch: 'master',
+                    url: "${GITHUB_URL}"
             }
+
 
             post {
                 success {
