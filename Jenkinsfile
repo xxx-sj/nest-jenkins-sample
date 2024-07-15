@@ -38,17 +38,10 @@ pipeline {
                 }
             }
         }
-        
-        stage('Setup Docker and NodeJS') {
+
+        stage('Setup Docker') {
             steps {
                 sh '''
-                    apk update &&
-                    apk add --no-cache openrc &&
-                    apk add --no-cache docker &&
-                    rc-update add docker boot &&
-                    service docker start &&
-                    dockerd &
-
                     # Docker 데몬이 시작될 때까지 대기
                     while (! docker info > /dev/null 2>&1); do
                       echo "Waiting for Docker Daemon to start..."
@@ -59,12 +52,13 @@ pipeline {
                     addgroup -S docker || true
                     adduser -S jenkins || true
                     addgroup jenkins docker || true
+                    addgroup root docker || true
 
                     docker --version
                 '''
             }
         }
-        
+
         stage('Build') {
             steps {
                 sh 'npm install'
@@ -77,7 +71,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Test') {
             steps {
                 sh 'npm test'
@@ -89,7 +83,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -111,7 +105,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Push to ncloud registry') {
             steps {
                 script {
@@ -128,7 +122,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Deploy to Public Subnet') {
             steps {
                 sshagent([SSH_CREDENTIALS_ID]) {
@@ -139,26 +133,4 @@ pipeline {
                     EOF
                     """
                 }
-            }
-
-            post {
-                failure {
-                    sh 'echo "Deploy failed"'
-                }
-            }
-        }
-
-        stage('Cleanup') {
-            steps {
-                sh '''
-                    # Docker 이미지 및 컨테이너 정리
-                    docker system prune -a -f --volumes
-
-                    # 임시 파일 및 캐시 정리
-                    rm -rf /tmp/*
-                    rm -rf /var/cache/apk/*
-                '''
-            }
-        }
-    }
-}
+​⬤
