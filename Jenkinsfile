@@ -16,7 +16,7 @@ pipeline {
 
     tools {
         // NodeJS 설치 (Jenkins에 NodeJS Plugin이 설치되어 있어야 합니다)
-        nodejs 'NodeJS'
+        nodejs 'nodeJS' // NodeJS 설치 이름
     }
 
 
