@@ -42,7 +42,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Setup Docker and NodeJS') {
             steps {
                 sh '''
@@ -60,8 +60,9 @@ pipeline {
                     done
 
                     # Add Jenkins user to Docker group
-                    addgroup -S docker
-                    addgroup jenkins docker
+                    addgroup -S docker || true
+                    adduser -S jenkins || true
+                    addgroup jenkins docker || true
 
                     docker --version
                 '''
@@ -138,15 +139,15 @@ pipeline {
                 sshagent([SSH_CREDENTIALS_ID]) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${SSH_USER}@${PUBLIC_SUBNET_IP} << EOF
-                    docker pull ${DOCKER_IMAGE}
-                    docker run -d -p 3001:3001 ${DOCKER_IMAGE}
+                    docker pull ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
+                    docker run -d -p 3001:3001 ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
                     EOF
                     """
                 }
             } 
             post {
                 failure {
-                    sh 'deploy failed'
+                    sh 'echo "Deploy failed"'
                 }
             }
         }
