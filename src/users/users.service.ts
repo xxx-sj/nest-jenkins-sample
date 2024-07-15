@@ -9,7 +9,4 @@ export class UsersService {
         this.users.push(user);
     } 
 
-    findAll(): User[] {
-        
-    }
 }

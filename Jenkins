@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+
+    environment {
+        REGISTRY_URL = 'https://ncloudregistry.com'
+        REGISTRY_CREDENTIALS_ID = 'ncloud-credentials'
+        SSH_CREDENTIALS_ID = 'ncloud-ssh-credentials'
+        DOCKER_IMAGE = 'your-image-name:latest'
+        PUBLIC_SUBNET_IP = 'your-public-subnet-ip'
+        SSH_USER = 'your-username'
+        GITHUB_URL = 'https://github.com/xxx-sj/nest-jenkins-sample.git'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git ${GITHUB_URL}
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                // 빌드 명령어 예시
+                sh 'make build'
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                // 테스트 명령어 예시
+                sh 'make test'
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${DOCKER_IMAGE}")
+                }
+            }
+        }
+        
+        stage('Push to ncloud registry') {
+            steps {
+                script {
+                    docker.withRegistry("${REGISTRY_URL}", "${REGISTRY_CREDENTIALS_ID}") {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to Public Subnet') {
+            steps {
+                sshagent([SSH_CREDENTIALS_ID]) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${SSH_USER}@${PUBLIC_SUBNET_IP} << EOF
+                    docker pull ${DOCKER_IMAGE}
+                    docker run -d -p 80:80 ${DOCKER_IMAGE}
+                    EOF
+                    """
+                }
+            }
+        }
+    }
+}
