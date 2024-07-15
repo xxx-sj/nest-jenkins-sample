@@ -133,4 +133,26 @@ pipeline {
                     EOF
                     """
                 }
-​⬤
+            }
+
+            post {
+                failure {
+                    sh 'echo "Deploy failed"'
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh '''
+                    # Docker 이미지 및 컨테이너 정리
+                    docker system prune -a -f --volumes
+
+                    # 임시 파일 및 캐시 정리
+                    rm -rf /tmp/*
+                    rm -rf /var/cache/apk/*
+                '''
+            }
+        }
+    }
+}
