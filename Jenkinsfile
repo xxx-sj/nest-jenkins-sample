@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'alpine:latest'
+            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
     environment {
         REGISTRY_URL = 'https://ncloudregistry.com'
@@ -48,13 +53,15 @@ pipeline {
                     service docker start &&
                     dockerd &
 
+                    # Wait for Docker Daemon to start
                     while (! docker info > /dev/null 2>&1); do
-                    echo "Waiting for Docker Daemon to start..."
-                    sleep 1
+                      echo "Waiting for Docker Daemon to start..."
+                      sleep 1
                     done
 
-                    # Grant access to the Docker socket
-                    chmod 666 /var/run/docker.sock
+                    # Add Jenkins user to Docker group
+                    addgroup -S docker
+                    addgroup jenkins docker
 
                     docker --version
                 '''
