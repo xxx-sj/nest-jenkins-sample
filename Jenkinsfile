@@ -84,22 +84,6 @@ pipeline {
         stage('Push to ncloud registry') {
             steps {
                 script {
-                    docker login dev-overay-studio-server.kr.ncr.ntruss.com
-                    docker push dev-overay-studio-server.kr.ncr.ntruss.com/${TAG_IMAGE}
-                    // docker pull dev-overay-studio-server.kr.ncr.ntruss.com/<TARGET_IMAGE[:TAG]>
-                }
-
-                post {
-                    failure {
-                        sh 'push registry failed'
-                    }
-                }
-            }
-        }
-
-        stage('Push to ncloud registry') {
-            steps {
-                script {
                     withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh "echo ${DOCKER_PASSWORD} | docker login ${REGISTRY_URL} -u ${DOCKER_USERNAME} --password-stdin"
                     }
