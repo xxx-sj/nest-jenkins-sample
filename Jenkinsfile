@@ -14,6 +14,11 @@ pipeline {
     }
 
 
+    tools {
+        // NodeJS 설치 (Jenkins에 NodeJS Plugin이 설치되어 있어야 합니다)
+        nodejs 'NodeJS'
+    }
+
 
     stages {
         stage('Checkout') {
@@ -35,8 +40,9 @@ pipeline {
         
         stage('Build') {
             steps {
-                // 빌드 명령어 예시
-                sh 'make build'
+                // npm 명령어를 사용하여 빌드
+                sh 'npm install'
+                sh 'npm run build'
             }
 
             post {
@@ -48,8 +54,8 @@ pipeline {
         
         stage('Test') {
             steps {
-                // 테스트 명령어 예시
-                sh 'make test'
+                // npm 명령어를 사용하여 테스트
+                sh 'npm test'
             }
 
             post {
