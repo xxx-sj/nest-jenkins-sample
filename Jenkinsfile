@@ -149,7 +149,19 @@ pipeline {
                     sh 'deploy failed'
                 }
             }
+        }
 
+        stage('Cleanup') {
+            steps {
+                sh '''
+                    # Clean up Docker images and containers
+                    docker system prune -a -f --volumes
+
+                    # Clean up temporary files and caches
+                    rm -rf /tmp/*
+                    rm -rf /var/cache/apk/*
+                '''
+            }
         }
     }
 }
