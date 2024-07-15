@@ -37,6 +37,29 @@ pipeline {
                 }
             }
         }
+
+        stage('Setup Docker and NodeJS') {
+            steps {
+                sh '''
+                    apk update &&
+                    apk add --no-cache openrc &&
+                    apk add --no-cache docker &&
+                    rc-update add docker boot &&
+                    service docker start &&
+                    dockerd &
+
+                    while (! docker info > /dev/null 2>&1); do
+                    echo "Waiting for Docker Daemon to start..."
+                    sleep 1
+                    done
+
+                    # Grant access to the Docker socket
+                    chmod 666 /var/run/docker.sock
+
+                    docker --version
+                '''
+            }
+        }
         
         stage('Build') {
             steps {
