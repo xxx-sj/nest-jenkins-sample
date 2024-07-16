@@ -37,17 +37,32 @@ pipeline {
         stage('Setup Docker') {
             steps {
                 sh '''
-                    # Docker 데몬이 시작될 때까지 대기
+                    # Ensure Docker is installed
+                    if ! command -v docker &> /dev/null; then
+                      echo "Docker could not be found"
+                      exit 1
+                    fi
+
+                    # Start Docker service if not running
+                    if ! systemctl is-active --quiet docker; then
+                      echo "Starting Docker service..."
+                      sudo systemctl start docker
+                    fi
+
+                    # Docker daemon check
                     while (! docker info > /dev/null 2>&1); do
                       echo "Waiting for Docker Daemon to start..."
                       sleep 1
                     done
 
-                    # Jenkins 사용자를 Docker 그룹에 추가
-                    addgroup -S docker || true
-                    adduser -S jenkins || true
-                    addgroup jenkins docker || true
-                    addgroup root docker || true
+                    # Jenkins user to Docker group
+                    if ! getent group docker | grep -q "\\bjenkins\\b"; then
+                      sudo groupadd docker
+                      sudo usermod -aG docker jenkins
+                      newgrp docker <<EOF
+                      docker --version
+                      EOF
+                    fi
 
                     docker --version
                 '''
