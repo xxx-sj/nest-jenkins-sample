@@ -13,10 +13,6 @@ pipeline {
         GITHUB_URL = 'https://github.com/xxx-sj/nest-jenkins-sample.git'
     }
 
-    tools {
-        // nodejs 'nodeJS 22.4.1' // 이 부분을 주석 처리하거나 제거하세요
-    }
-
     stages {
         stage('Checkout') {
             steps {
