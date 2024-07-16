@@ -14,7 +14,7 @@ pipeline {
     }
 
     tools {
-        nodejs 'nodeJS 22.4.1' // Jenkins에 설치된 NodeJS 툴 이름
+        // nodejs 'nodeJS 22.4.1' // 이 부분을 주석 처리하거나 제거하세요
     }
 
     stages {
