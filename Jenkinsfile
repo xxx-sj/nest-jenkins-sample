@@ -44,9 +44,9 @@ pipeline {
                     fi
 
                     # Start Docker service if not running
-                    if ! systemctl is-active --quiet docker; then
+                    if ! rc-service docker status; then
                       echo "Starting Docker service..."
-                      sudo systemctl start docker
+                      rc-service docker start
                     fi
 
                     # Docker daemon check
@@ -57,8 +57,8 @@ pipeline {
 
                     # Jenkins user to Docker group
                     if ! getent group docker | grep -q "\\bjenkins\\b"; then
-                      sudo groupadd docker
-                      sudo usermod -aG docker jenkins
+                      addgroup docker
+                      adduser jenkins docker
                       newgrp docker <<EOF
                       docker --version
                       EOF
