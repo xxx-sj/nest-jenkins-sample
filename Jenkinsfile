@@ -9,7 +9,7 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY_URL = 'https://ncloudregistry.com'
+        REGISTRY_URL = 'ncloudregistry.com'
         REGISTRY_CREDENTIALS_ID = 'ncloud-credentials'
         SSH_CREDENTIALS_ID = 'ncloud-ssh-credentials'
         DOCKER_IMAGE = 'nest-server'
