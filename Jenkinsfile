@@ -70,6 +70,12 @@ pipeline {
                     npm --version
                 '''
             }
+
+            post {
+                failure {
+                    sh 'echo setup node failed'
+                }
+            }
         }
 
         stage('Build') {
