@@ -1,11 +1,4 @@
 pipeline {
-    // agent {
-    //     docker {
-    //         image 'alpine:latest' // 기본 알파인 이미지 사용
-    //         args '-u root' // 루트 권한으로 실행
-    //     }
-    // }
-
     agent any
 
     environment {
@@ -120,15 +113,10 @@ pipeline {
         stage('Push to ncloud registry') {
             steps {
                 script {
-
-                    sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD} dev-overay-studio-server.kr.ncr.ntruss.com"
+                    withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh 'echo $DOCKER_PASSWORD | docker login $REGISTRY_URL -u $DOCKER_USERNAME --password-stdin'
+                    }
                     sh "docker push ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
-
-                    // sh "docker pull dev-overay-studio-server.kr.ncr.ntruss.com/<TARGET_IMAGE[:TAG]>"
-                    // withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                    //     sh "echo ${DOCKER_PASSWORD} | docker login ${REGISTRY_URL} -u ${DOCKER_USERNAME} --password-stdin"
-                    // }
-                    // sh "docker push ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                 }
             }
 
