@@ -56,6 +56,22 @@ pipeline {
             }
         }
 
+        stage('Setup Node') {
+            steps {
+                sh '''
+                    # NodeJS 설치 확인 및 경로 설정
+                    if ! command -v node &> /dev/null; then
+                      echo "NodeJS could not be found. Installing..."
+                      apk add --update nodejs npm
+                    fi
+
+                    # NodeJS 버전 확인
+                    node --version
+                    npm --version
+                '''
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'npm install'
