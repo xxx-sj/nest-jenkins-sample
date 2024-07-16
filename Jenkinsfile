@@ -1,4 +1,11 @@
 pipeline {
+    // agent {
+    //     docker {
+    //         image 'alpine:latest' // 기본 알파인 이미지 사용
+    //         args '-u root' // 루트 권한으로 실행
+    //     }
+    // }
+
     agent any
 
     environment {
@@ -27,28 +34,6 @@ pipeline {
                 failure {
                     sh 'echo "Failed to clone from git repo"'
                 }
-            }
-        }
-
-        stage('Setup Docker') {
-            steps {
-                sh '''
-                    # Docker 데몬을 백그라운드에서 수동으로 실행
-                    if ! pgrep dockerd > /dev/null 2>&1; then
-                      echo "Starting Docker daemon..."
-                      nohup dockerd > /var/log/dockerd.log 2>&1 &
-                      sleep 5
-                    fi
-
-                    # Docker 데몬 확인
-                    while (! docker info > /dev/null 2>&1); do
-                      echo "Waiting for Docker daemon to start..."
-                      sleep 1
-                    done
-
-                    # Docker 버전 출력
-                    docker --version
-                '''
             }
         }
 
