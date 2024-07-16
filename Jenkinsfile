@@ -25,7 +25,7 @@ pipeline {
                     sh 'echo "Successfully cloned from git repo"'
                 }
                 failure {
-                    sh 'echo "fail cloned from git"'
+                    sh 'echo "Failed to clone from git repo"'
                 }
             }
         }
@@ -51,23 +51,14 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Setup Node') {
             steps {
                 sh '''
-                    # doas 설치
-                    if ! command -v doas &> /dev/null; then
-                      echo "doas could not be found. Installing..."
-                      apk add --no-cache doas
-                    fi
-
-                    # doas 설정 파일 생성
-                    echo "permit jenkins" > /etc/doas.d/doas.conf
-
                     # NodeJS 설치 확인 및 경로 설정
                     if ! command -v node &> /dev/null; then
                       echo "NodeJS could not be found. Installing..."
-                      doas apk add --update nodejs npm
+                      apk update && apk add --no-cache nodejs npm
                     fi
 
                     # NodeJS 버전 확인
@@ -78,7 +69,7 @@ pipeline {
 
             post {
                 failure {
-                    sh 'echo setup node failed'
+                    sh 'echo "Setup node failed"'
                 }
             }
         }
@@ -91,7 +82,7 @@ pipeline {
 
             post {
                 failure {
-                    sh 'echo "build failed"'
+                    sh 'echo "Build failed"'
                 }
             }
         }
@@ -103,7 +94,7 @@ pipeline {
 
             post {
                 failure {
-                    sh 'echo "test failed"'
+                    sh 'echo "Test failed"'
                 }
             }
         }
@@ -131,7 +122,7 @@ pipeline {
 
             post {
                 failure {
-                    sh 'echo "Tag Docker Image failed"'
+                    sh 'echo "Tag Docker image failed"'
                 }
             }
         }
