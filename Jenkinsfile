@@ -51,14 +51,23 @@ pipeline {
                 '''
             }
         }
-
+        
         stage('Setup Node') {
             steps {
                 sh '''
+                    # doas 설치
+                    if ! command -v doas &> /dev/null; then
+                      echo "doas could not be found. Installing..."
+                      apk add --no-cache doas
+                    fi
+
+                    # doas 설정 파일 생성
+                    echo "permit jenkins" > /etc/doas.d/doas.conf
+
                     # NodeJS 설치 확인 및 경로 설정
                     if ! command -v node &> /dev/null; then
                       echo "NodeJS could not be found. Installing..."
-                      apk add --update nodejs npm
+                      doas apk add --update nodejs npm
                     fi
 
                     # NodeJS 버전 확인
