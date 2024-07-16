@@ -87,7 +87,12 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ."
+                    try {
+                        sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ."
+                    } catch (Exception e) {
+                        sh 'echo "Docker build failed with error: ${e}"'
+                        throw e
+                    }
                 }
             }
 
