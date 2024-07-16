@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY_URL = 'ncloudregistry.com'
+        REGISTRY_URL = 'dev-overay-studio-server.kr.ncr.ntruss.com'
         REGISTRY_CREDENTIALS_ID = 'ncloud-credentials'
         SSH_CREDENTIALS_ID = 'ncloud-ssh-credentials'
         DOCKER_IMAGE = 'nest-server'
@@ -99,6 +99,7 @@ pipeline {
         stage('Tag Docker Image') {
             steps {
                 script {
+                    //TODO docker tag nest-server:48 dev-overay-studio-server.kr.ncr.ntruss.com/sample/dev-nest-server:48 will tag change
                     sh "docker tag ${DOCKER_IMAGE}:${IMAGE_TAG} ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                 }
             }
@@ -113,6 +114,11 @@ pipeline {
         stage('Push to ncloud registry') {
             steps {
                 script {
+
+                    // sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD} dev-overay-studio-server.kr.ncr.ntruss.com"
+                    // sh "docker push ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
+                    // sh "docker pull dev-overay-studio-server.kr.ncr.ntruss.com/<TARGET_IMAGE[:TAG]>"
+                    
                     withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh 'echo $DOCKER_PASSWORD | docker login $REGISTRY_URL -u $DOCKER_USERNAME --password-stdin'
                     }
