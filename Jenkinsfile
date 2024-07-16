@@ -37,33 +37,20 @@ pipeline {
         stage('Setup Docker') {
             steps {
                 sh '''
-                    # Ensure Docker is installed
-                    if ! command -v docker &> /dev/null; then
-                      echo "Docker could not be found"
-                      exit 1
+                    # Docker 데몬을 백그라운드에서 수동으로 실행
+                    if ! pgrep dockerd > /dev/null 2>&1; then
+                      echo "Starting Docker daemon..."
+                      nohup dockerd > /var/log/dockerd.log 2>&1 &
+                      sleep 5
                     fi
 
-                    # Start Docker service if not running
-                    if ! rc-service docker status; then
-                      echo "Starting Docker service..."
-                      rc-service docker start
-                    fi
-
-                    # Docker daemon check
+                    # Docker 데몬 확인
                     while (! docker info > /dev/null 2>&1); do
-                      echo "Waiting for Docker Daemon to start..."
+                      echo "Waiting for Docker daemon to start..."
                       sleep 1
                     done
 
-                    # Jenkins user to Docker group
-                    if ! getent group docker | grep -q "\\bjenkins\\b"; then
-                      addgroup docker
-                      adduser jenkins docker
-                      newgrp docker <<EOF
-                      docker --version
-                      EOF
-                    fi
-
+                    # Docker 버전 출력
                     docker --version
                 '''
             }
