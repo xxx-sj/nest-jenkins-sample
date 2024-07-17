@@ -150,21 +150,28 @@ pipeline {
 
                     # Stop and remove running containers if any
                     RUNNING_CONTAINERS=$(docker ps -q)
+                    echo $RUNNING_CONTAINERS
                     if [ -n "$RUNNING_CONTAINERS" ]; then
                         docker stop $RUNNING_CONTAINERS
                     fi
 
                     # Remove all containers if any
                     ALL_CONTAINERS=$(docker ps -a -q)
+                    echo $ALL_CONTAINERS
                     if [ -n "$ALL_CONTAINERS" ]; then
                         docker rm $ALL_CONTAINERS
                     fi
 
                     # Remove the existing container if it exists
                     EXISTING_CONTAINER=$(docker ps -a -q -f name=nestjs-docker)
+                    echo $EXISTING_CONTAINER
                     if [ -n "$EXISTING_CONTAINER" ]; then
                         docker rm -f nestjs-docker
                     fi
+
+                    docker ps
+                    docker ps -a
+            
 
                     # Run the new container
                     docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
