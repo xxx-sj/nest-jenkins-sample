@@ -155,6 +155,9 @@ pipeline {
                                 docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $REGISTRY_URL
                                 docker pull $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
 
+                                ABC = "docker"
+                                echo "$ABC"
+
                                 # Stop and remove existing container with the same name
                                 if [ "$(docker ps -aq -f name=nestjs-docker)" ]; then
                                     docker stop nestjs-docker
