@@ -157,13 +157,23 @@ pipeline {
                                 docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $REGISTRY_URL
                                 docker pull $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
 
+                                docker_path=$(which docker)
+                                echo "Docker path: $docker_path"
+
+                                RUNNING_CONTAINERS=$($docker_path ps -q)
+
+                                # 결과가 비어 있는지 확인
+                                if [ -z "$RUNNING_CONTAINERS" ]; then
+                                    echo "No running containers found."
+                                else
+                                    echo "Running container IDs: $RUNNING_CONTAINERS"
+                                fi
+
                                 # Stop and remove running containers if any
                                 RUNNING_CONTAINERS=$(docker ps -q)
-                                A_B = docker ps -a
                                 echo "docker ps -q"
                                 docker ps -q
                                 echo "RUNNING_CONTAINERS = $RUNNING_CONTAINERS"
-                                echo "A_B = $A_B"
                                 if [ -n "$RUNNING_CONTAINERS" ]; then
                                     docker stop $RUNNING_CONTAINERS
                                 fi
