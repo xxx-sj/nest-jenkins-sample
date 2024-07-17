@@ -143,16 +143,15 @@ pipeline {
         
         stage('Deploy') {
             steps {
-                sh '''
-                    ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
-                    set -x
+                sh """
+                    ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} '
+                    export DOCKER_USERNAME=${DOCKER_USERNAME}
+                    export DOCKER_PASSWORD=${DOCKER_PASSWORD}
+                    export REGISTRY_URL=${REGISTRY_URL}
+                    export TAG_IMAGE=${TAG_IMAGE}
+                    export IMAGE_TAG=${IMAGE_TAG}
 
-                    # 환경 변수 설정
-                    DOCKER_USERNAME=${DOCKER_USERNAME}
-                    DOCKER_PASSWORD=${DOCKER_PASSWORD}
-                    REGISTRY_URL=${REGISTRY_URL}
-                    TAG_IMAGE=${TAG_IMAGE}
-                    IMAGE_TAG=${IMAGE_TAG}
+                    set -x
 
                     docker login -u \${DOCKER_USERNAME} -p \${DOCKER_PASSWORD} \${REGISTRY_URL}
                     docker pull \${REGISTRY_URL}/\${TAG_IMAGE}:\${IMAGE_TAG}
@@ -186,8 +185,8 @@ pipeline {
                     docker image prune -f
 
                     set +x
-                    EOF
-                '''
+                    '
+                """
             }
             post {
                 failure {
