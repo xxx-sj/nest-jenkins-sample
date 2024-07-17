@@ -4,7 +4,6 @@ pipeline {
     environment {
         REGISTRY_URL = 'dev-overay-studio-server.kr.ncr.ntruss.com'
         REGISTRY_CREDENTIALS_ID = 'ncloud-credentials'
-        SSH_CREDENTIALS_ID = 'ncloud-ssh-credentials'
         DOCKER_IMAGE = 'nest-server'
         TAG_IMAGE = 'dev-nest-server'
         SERVER_IP = '192.168.1.6'
@@ -33,13 +32,11 @@ pipeline {
         stage('Setup Node') {
             steps {
                 sh '''
-                    # NodeJS 설치 확인 및 경로 설정
                     if ! command -v node &> /dev/null; then
                       echo "NodeJS could not be found. Installing..."
                       apk update && apk add --no-cache nodejs npm
                     fi
 
-                    # NodeJS 버전 확인
                     node --version
                     npm --version
                 '''
@@ -81,7 +78,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ."
+                        sh 'docker build -t $DOCKER_IMAGE:$IMAGE_TAG .'
                     } catch (Exception e) {
                         sh 'echo "Docker build failed with error: ${e}"'
                         throw e
@@ -99,7 +96,7 @@ pipeline {
         stage('Tag Docker Image') {
             steps {
                 script {
-                    sh "docker tag ${DOCKER_IMAGE}:${IMAGE_TAG} ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
+                    sh 'docker tag $DOCKER_IMAGE:$IMAGE_TAG $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG'
                 }
             }
 
@@ -117,8 +114,8 @@ pipeline {
                         sh 'echo $DOCKER_PASSWORD | docker login $REGISTRY_URL -u $DOCKER_USERNAME --password-stdin'
                     }
                 
-                    sh "echo image pushed is ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
-                    sh "docker push ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
+                    sh 'echo image pushed is $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG'
+                    sh 'docker push $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG'
                 }
             }
 
@@ -144,14 +141,13 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh '''
-                            ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} <<EOF
+                            ssh -T -i $KEY_PATH -o StrictHostKeyChecking=no $SSH_USER@$SERVER_IP <<EOF
                                 export DOCKER_USERNAME=$DOCKER_USERNAME
                                 export DOCKER_PASSWORD=$DOCKER_PASSWORD
                                 export REGISTRY_URL=$REGISTRY_URL
                                 export TAG_IMAGE=$TAG_IMAGE
                                 export IMAGE_TAG=$IMAGE_TAG
 
-                                echo "\\\$DOCKER_USERNAME \\\$DOCKER_PASSWORD \\\$REGISTRY_URL"
                                 echo \\\$DOCKER_PASSWORD | docker login \\\$REGISTRY_URL -u \\\$DOCKER_USERNAME --password-stdin
                                 docker pull \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
 
