@@ -141,16 +141,18 @@ pipeline {
             }
         }
         
-        stage('Deploy to Public Subnet') {
+        stage('Deploy') {
             steps {
                 sh '''
-                    ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
+                    ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
                     docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD} ${REGISTRY_URL}
                     docker pull ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
 
                     # Stop and remove running containers if any
                     RUNNING_CONTAINERS=$(docker ps -q)
-                    echo "RUNNING_CONATINERS = $RUNNING_CONTAINERS"
+                    echo "docker ps -q"
+                    docker ps -q
+                    echo "RUNNING_CONTAINERS = $RUNNING_CONTAINERS"
                     if [ -n "$RUNNING_CONTAINERS" ]; then
                         docker stop $RUNNING_CONTAINERS
                     fi
@@ -159,7 +161,7 @@ pipeline {
                     ALL_CONTAINERS=$(docker ps -a -q)
                     echo "ALL_CONTAINERS = $ALL_CONTAINERS"
                     if [ -n "$ALL_CONTAINERS" ]; then
-                        docker rm $ALL_CONTAINERS
+                        docker rm -f $ALL_CONTAINERS
                     fi
 
                     # Remove the existing container if it exists
@@ -173,7 +175,6 @@ pipeline {
                     docker ps
                     echo "docker ps -a"
                     docker ps -a
-            
 
                     # Run the new container
                     docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
@@ -183,10 +184,13 @@ pipeline {
                     EOF
                 '''
             }
-
             post {
                 failure {
                     sh 'echo "Deploy failed"'
+                }
+                always {
+                    sh 'echo "Final cleanup..."'
+                    sh 'docker system prune -a -f --volumes'
                 }
             }
         }
