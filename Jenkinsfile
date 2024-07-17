@@ -136,7 +136,7 @@ pipeline {
                 script {
                     sh 'echo "docker images"'
                     sh 'echo remove images all'
-                    sh 'docker images prune -f -a'
+                    sh 'docker image prune -f -a'
                 }
             }
         }
