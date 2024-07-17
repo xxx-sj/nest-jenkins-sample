@@ -155,7 +155,7 @@ pipeline {
                                 docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $REGISTRY_URL
                                 docker pull $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
 
-                                ABC="docker"
+                                ABC="docker tst!1"
                                 echo "$ABC"
 
                                 # Stop and remove existing container with the same name
@@ -169,7 +169,7 @@ pipeline {
 
                                 # Run the new container
                                 echo "Running docker container: $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG"
-                                docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
+                                docker run -d -p 3000:3000 --name nestjs-docker \${REGISTRY_URL}/\${TAG_IMAGE}:\${IMAGE_TAG}
 
                                 echo "running container"
                                 docker ps
