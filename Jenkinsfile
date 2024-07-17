@@ -144,12 +144,10 @@ pipeline {
         stage('Deploy to Public Subnet') {
             steps {
                 script {
-                    sh 'echo whoami'
-                    sh 'echo "whoami"'
                     sh 'whoami'
                     sh 'pwd'
                     sh '''
-                            ssh -i ${KEY_PATH} ${SSH_USER}@${SERVER_IP} << EOF
+                            ssh -T -i ${KEY_PATH} ${SSH_USER}@${SERVER_IP} << EOF
                             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ${REGISTRY_URL}
                             docker pull ${REGISTRY_URL}/${DOCKER_IMAGE}:${TAG_IMAGE}
                             docker stop $(docker ps -a -q) || true
