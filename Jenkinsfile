@@ -148,20 +148,16 @@ pipeline {
                                 export TAG_IMAGE=$TAG_IMAGE
                                 export IMAGE_TAG=$IMAGE_TAG
 
+
                                 echo \\\$DOCKER_PASSWORD | docker login \\\$REGISTRY_URL -u \\\$DOCKER_USERNAME --password-stdin
                                 docker pull \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
 
                                 # Stop and remove existing container with the same name
-                                
-                                echo "======"
                                 docker ps -aq -f name=nestjs-docker
-
-                                if [ "\$(docker ps -aq -f name=nestjs-docker)" ]; then
-                                    echo "hello"
-                                fi
 
                                 docker_container_command="docker ps -aq -f name=nestjs-docker"
 
+                                echo "it is??.. $docker_container_command"
                                 docker stop \\\$(docker ps -aq -f name=nestjs-docker) || true
                                 docker rm \\\$(docker ps -aq -f name=nestjs-docker) || true
 
@@ -177,7 +173,7 @@ pipeline {
                                 docker ps
 
                                 # Clean up unused images
-                                docker image prune -f
+                                docker image prune -a -f
 EOF
                         '''
                     }
@@ -186,9 +182,6 @@ EOF
             post {
                 failure {
                     sh 'echo "Deploy failed"'
-                }
-                always {
-                    sh 'docker image prune -a -f'
                 }
             }
         }
