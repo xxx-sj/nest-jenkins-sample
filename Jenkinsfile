@@ -151,12 +151,9 @@ pipeline {
                                 export TAG_IMAGE=${TAG_IMAGE}
                                 export IMAGE_TAG=${IMAGE_TAG}
 
-                                echo "$DOCKER_USERNAME $DOCKER_PASSWORD $REGISTRY_URL"
-                                docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $REGISTRY_URL
-                                docker pull $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
-
-                                ABC="docker test!1"
-                                echo "$ABC"
+                                echo "\$DOCKER_USERNAME \$DOCKER_PASSWORD \$REGISTRY_URL"
+                                docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD \$REGISTRY_URL
+                                docker pull \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG
 
                                 # Stop and remove existing container with the same name
                                 if [ "\$(docker ps -aq -f name=nestjs-docker)" ]; then
@@ -168,8 +165,8 @@ pipeline {
                                 fi
 
                                 # Run the new container
-                                echo "Running docker container: $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG"
-                                docker run -d -p 3000:3000 --name nestjs-docker $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
+                                echo "Running docker container: \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG"
+                                docker run -d -p 3000:3000 --name nestjs-docker \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG
 
                                 echo "running container"
                                 docker ps
