@@ -1,4 +1,4 @@
 ! /bin/bash
 
-abc = $(docker ps -q)
+abc=$(docker ps -q)
 echo abc
