@@ -146,19 +146,15 @@ pipeline {
                 script {
                     sh 'whoami'
                     sh 'pwd'
-                    sh """
-                            ssh -T -i \$SSH_KEY -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
+                    sh '''
+                            ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
                             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ${REGISTRY_URL}
-                            if docker pull ${REGISTRY_URL}/${DOCKER_IMAGE}:${TAG_IMAGE}; then
-                                docker stop \$(docker ps -a -q) || true
-                                docker rm \$(docker ps -a -q) || true
-                                docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${DOCKER_IMAGE}:${TAG_IMAGE}
-                                docker image prune -f
-                            else
-                                echo "Failed to pull the Docker image"
-                            fi
+                            docker pull ${REGISTRY_URL}/${DOCKER_IMAGE}:${TAG_IMAGE}
+                            docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${DOCKER_IMAGE}:${TAG_IMAGE}
+                            docker image prune -f
                             EOF
-                        """
+                        '''
+                        
                     // withCredentials([sshUserPrivateKey(credentialsId: SSH_CREDENTIALS_ID, keyFileVariable: 'SSH_KEY')]) {
                     //     // ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
                     //     sh '''
