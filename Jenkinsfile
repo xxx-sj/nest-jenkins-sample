@@ -143,7 +143,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh """
+                        sh '''
                             ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} <<EOF
                                 export DOCKER_USERNAME=${DOCKER_USERNAME}
                                 export DOCKER_PASSWORD=${DOCKER_PASSWORD}
@@ -152,24 +152,25 @@ pipeline {
                                 export IMAGE_TAG=${IMAGE_TAG}
 
                                 set -x
-
-                                docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD \$REGISTRY_URL
-                                docker pull \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG
+                                
+                                echo '$DOCKER_USERNAME $DOCKER_PASSWORD $REGISTRY_URL'
+                                docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $REGISTRY_URL
+                                docker pull $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
 
                                 # Stop and remove running containers if any
-                                RUNNING_CONTAINERS=\$(docker ps -q)
+                                RUNNING_CONTAINERS=$(docker ps -q)
                                 echo "docker ps -q"
                                 docker ps -q
-                                echo "RUNNING_CONTAINERS = \$RUNNING_CONTAINERS"
-                                if [ -n "\$RUNNING_CONTAINERS" ]; then
-                                    docker stop \$RUNNING_CONTAINERS
+                                echo "RUNNING_CONTAINERS = $RUNNING_CONTAINERS"
+                                if [ -n "$RUNNING_CONTAINERS" ]; then
+                                    docker stop $RUNNING_CONTAINERS
                                 fi
 
                                 # Remove all containers if any
-                                ALL_CONTAINERS=\$(docker ps -a -q)
-                                echo "ALL_CONTAINERS = \$ALL_CONTAINERS"
-                                if [ -n "\$ALL_CONTAINERS" ]; then
-                                    docker rm -f \$ALL_CONTAINERS
+                                ALL_CONTAINERS=$(docker ps -a -q)
+                                echo "ALL_CONTAINERS = $ALL_CONTAINERS"
+                                if [ -n "$ALL_CONTAINERS" ]; then
+                                    docker rm -f $ALL_CONTAINERS
                                 fi
 
                                 echo "docker ps"
@@ -178,15 +179,15 @@ pipeline {
                                 docker ps -a
 
                                 # Run the new container
-                                echo "Running docker container: \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG"
-                                docker run -d -p 3000:3000 --name nestjs-docker \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG
+                                echo "Running docker container: $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG"
+                                docker run -d -p 3000:3000 --name nestjs-docker $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
 
                                 # Clean up unused images
                                 docker image prune -f
 
                                 set +x
 EOF
-                        """
+                        '''
                     }
                 }
             }
