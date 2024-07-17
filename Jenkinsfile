@@ -116,7 +116,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh 'echo $DOCKER_PASSWORD | docker login $REGISTRY_URL -u $DOCKER_USERNAME --password-stdin'
                     }
-
+                
                     sh "echo image pushed is ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                     sh "docker push ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                 }
@@ -143,58 +143,47 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-
-                        sh '''
-                                ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+                        sh """
+                            ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} <<EOF
                                 export DOCKER_USERNAME=${DOCKER_USERNAME}
                                 export DOCKER_PASSWORD=${DOCKER_PASSWORD}
                                 export REGISTRY_URL=${REGISTRY_URL}
                                 export TAG_IMAGE=${TAG_IMAGE}
                                 export IMAGE_TAG=${IMAGE_TAG}
 
-                                echo "====================== docker login ==============================="
-                                echo "$DOCKER_USERNAME $DOCKER_PASSWORD $REGISTRY_URL"
-                                echo $DOCKER_PASSWORD | docker login $REGISTRY_URL -u $DOCKER_USERNAME --password-stdin
-                                docker pull $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
-                                echo "======================================================="
+                                echo "\\\$DOCKER_USERNAME \\\$DOCKER_PASSWORD \\\$REGISTRY_URL"
+                                echo \\\$DOCKER_PASSWORD | docker login \\\$REGISTRY_URL -u \\\$DOCKER_USERNAME --password-stdin
+                                docker pull \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
 
                                 # Stop and remove existing container with the same name
                                 
-                                echo "===================== find docker =============================="
+                                echo "======"
                                 docker ps -aq -f name=nestjs-docker
-                                echo "======================================================="
 
-                                if [ "$(docker ps -aq -f name=nestjs-docker)" ]; then
-                                    echo "== test hello == "
+                                if [ "\$(docker ps -aq -f name=nestjs-docker)" ]; then
+                                    echo "hello"
                                 fi
 
                                 docker_container_command="docker ps -aq -f name=nestjs-docker"
 
-                                echo "====================== docker stop and rm =========================="
-                                docker stop $(docker ps -aq -f name=nestjs-docker) || true
-                                docker rm $(docker ps -aq -f name=nestjs-docker) || true
+                                docker stop \\\$(docker ps -aq -f name=nestjs-docker) || true
+                                docker rm \\\$(docker ps -aq -f name=nestjs-docker) || true
 
                                 docker ps 
                                 docker ps -a
-                                echo "======================================================="
                             
 
                                 # Run the new container
-                                echo "==================== docker start ================================"
-                                echo "Running docker container: $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG"
-                                docker run -d -p 3000:3000 --name nestjs-docker $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
-                                echo "======================================================="
+                                echo "Running docker container: \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG"
+                                docker run -d -p 3000:3000 --name nestjs-docker \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
 
-                                echo "===================== after running docker ============================="
                                 echo "running container"
                                 docker ps
-
-                                echo "======================================================="
 
                                 # Clean up unused images
                                 docker image prune -f
 EOF
-                        '''
+                        """
                     }
                 }
             }
