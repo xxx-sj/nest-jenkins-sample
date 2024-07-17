@@ -173,6 +173,7 @@ pipeline {
                                 docker ps
 
                                 # Clean up unused images
+                                echo "=== clean image ==="
                                 docker image prune -a -f
 EOF
                         '''
