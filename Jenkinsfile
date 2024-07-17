@@ -116,7 +116,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh 'echo $DOCKER_PASSWORD | docker login $REGISTRY_URL -u $DOCKER_USERNAME --password-stdin'
                     }
-                
+
                     sh "echo image pushed is ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                     sh "docker push ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                 }
@@ -152,7 +152,7 @@ pipeline {
                                 export IMAGE_TAG=${IMAGE_TAG}
 
                                 echo "\\\$DOCKER_USERNAME \\\$DOCKER_PASSWORD \\\$REGISTRY_URL"
-                                docker login -u \\\$DOCKER_USERNAME -p \\\$DOCKER_PASSWORD \\\$REGISTRY_URL
+                                echo \\\$DOCKER_PASSWORD | docker login \\\$REGISTRY_URL -u \\\$DOCKER_USERNAME --password-stdin
                                 docker pull \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
 
                                 # Stop and remove existing container with the same name
