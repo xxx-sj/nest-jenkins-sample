@@ -145,6 +145,8 @@ pipeline {
             steps {
                 sh '''
                     ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+                    set -x
+
                     docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD} ${REGISTRY_URL}
                     docker pull ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
 
@@ -170,10 +172,13 @@ pipeline {
                     docker ps -a
 
                     # Run the new container
+                    echo "Running docker container: ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                     docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
 
                     # Clean up unused images
                     docker image prune -f
+
+                    set +x
                     EOF
                 '''
             }
