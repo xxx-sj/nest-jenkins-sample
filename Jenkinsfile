@@ -152,7 +152,7 @@ pipeline {
                                 export IMAGE_TAG=${IMAGE_TAG}
 
                                 set -x
-                                
+
                                 echo '$DOCKER_USERNAME $DOCKER_PASSWORD $REGISTRY_URL'
                                 docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $REGISTRY_URL
                                 docker pull $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
@@ -160,27 +160,21 @@ pipeline {
                                 docker_path=$(which docker)
                                 echo "Docker path: $docker_path"
 
+                                # Running containers
                                 RUNNING_CONTAINERS=$($docker_path ps -q)
+                                echo "RUNNING_CONTAINERS = $RUNNING_CONTAINERS"
 
-                                # 결과가 비어 있는지 확인
                                 if [ -z "$RUNNING_CONTAINERS" ]; then
                                     echo "No running containers found."
                                 else
                                     echo "Running container IDs: $RUNNING_CONTAINERS"
-                                fi
-
-                                # Stop and remove running containers if any
-                                RUNNING_CONTAINERS=$(docker ps -q)
-                                echo "docker ps -q"
-                                docker ps -q
-                                echo "RUNNING_CONTAINERS = $RUNNING_CONTAINERS"
-                                if [ -n "$RUNNING_CONTAINERS" ]; then
                                     docker stop $RUNNING_CONTAINERS
                                 fi
 
-                                # Remove all containers if any
-                                ALL_CONTAINERS=$(docker ps -a -q)
+                                # Remove all containers
+                                ALL_CONTAINERS=$($docker_path ps -a -q)
                                 echo "ALL_CONTAINERS = $ALL_CONTAINERS"
+
                                 if [ -n "$ALL_CONTAINERS" ]; then
                                     docker rm -f $ALL_CONTAINERS
                                 fi
@@ -198,7 +192,7 @@ pipeline {
                                 docker image prune -f
 
                                 set +x
-EOF
+        EOF
                         '''
                     }
                 }
@@ -207,7 +201,6 @@ EOF
                 failure {
                     sh 'echo "Deploy failed"'
                 }
-
                 always {
                     sh 'docker image prune -a -f'
                 }
