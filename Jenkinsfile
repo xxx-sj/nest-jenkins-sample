@@ -151,27 +151,19 @@ pipeline {
                                 export TAG_IMAGE=${TAG_IMAGE}
                                 export IMAGE_TAG=${IMAGE_TAG}
 
-                                set -x
-
                                 echo '$DOCKER_USERNAME $DOCKER_PASSWORD $REGISTRY_URL'
                                 docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $REGISTRY_URL
                                 docker pull $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
 
-                                docker_path=$(which docker)
-                                echo "Docker path: $docker_path"
-
                                 # Running containers
-                                RUNNING_CONTAINERS=$($docker_path ps -q)
+                                echo "docker ps -q"
+                                docker ps -q
+                                RUNNING_CONTAINERS=$(docker ps -q)
                                 echo "RUNNING_CONTAINERS = $RUNNING_CONTAINERS"
 
-                                if [ -z "$RUNNING_CONTAINERS" ]; then
-                                    echo "No running containers found."
-                                else
-                                    echo "Running container IDs: $RUNNING_CONTAINERS"
-                                    docker stop $RUNNING_CONTAINERS
-                                fi
-
                                 # Remove all containers
+                                echo "docker ps -a -q"
+                                docker ps -a -q
                                 ALL_CONTAINERS=$($docker_path ps -a -q)
                                 echo "ALL_CONTAINERS = $ALL_CONTAINERS"
 
@@ -191,8 +183,7 @@ pipeline {
                                 # Clean up unused images
                                 docker image prune -f
 
-                                set +x
-        EOF
+EOF
                         '''
                     }
                 }
