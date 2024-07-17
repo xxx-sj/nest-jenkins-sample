@@ -141,6 +141,24 @@ pipeline {
             }
         }
 
+        stage('Set SSH Key Permissions') {
+            steps {
+                sh '''
+                    chown jenkins:jenkins /home/jenkins/.ssh/nest_server_01
+                    chmod 600 /home/jenkins/.ssh/nest_server_01
+                '''
+            }
+
+            post {
+                success {
+                    sh 'echo "SSH key permissions set successfully"'
+                }
+                failure {
+                    sh 'echo "Failed to set SSH key permissions"'
+                }
+            }
+        }
+
         stage('Deploy to Public Subnet') {
             steps {
                 script {
