@@ -153,14 +153,11 @@ pipeline {
                         docker pull ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
                         echo "docker ps -q"
                         docker ps -q
+                        docker stop $(docker ps -q)
                         echo "docker ps -a -q"
                         docker ps -a -q
-                        if [ $(docker ps -q) ]; then
-                            docker stop $(docker ps -q)
-                        fi
-                        if [ $(docker ps -a -q) ]; then
-                            docker rm $(docker ps -a -q)
-                        fi
+                        docker rm $(docker ps -a -q)
+                    
                         docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
                         docker image prune -f
                         EOF
