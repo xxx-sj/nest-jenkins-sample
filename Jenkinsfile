@@ -143,13 +143,20 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+
+                        def dockerUsername = env.DOCKER_USERNAME
+                        def dockerPassword = env.DOCKER_PASSWORD
+                        def registryUrl = env.REGISTRY_URL
+                        def tagImage = env.TAG_IMAGE
+                        def imageTag = env.IMAGE_TAG
+
                         sh """
-                            ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} <<EOF
-                                export DOCKER_USERNAME=${DOCKER_USERNAME}
-                                export DOCKER_PASSWORD=${DOCKER_PASSWORD}
-                                export REGISTRY_URL=${REGISTRY_URL}
-                                export TAG_IMAGE=${TAG_IMAGE}
-                                export IMAGE_TAG=${IMAGE_TAG}
+                                ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+                                export DOCKER_USERNAME='${dockerUsername}'
+                                export DOCKER_PASSWORD='${dockerPassword}'
+                                export REGISTRY_URL='${registryUrl}'
+                                export TAG_IMAGE='${tagImage}'
+                                export IMAGE_TAG='${imageTag}'
 
                                 echo "\\\$DOCKER_USERNAME \\\$DOCKER_PASSWORD \\\$REGISTRY_URL"
                                 echo \\\$DOCKER_PASSWORD | docker login \\\$REGISTRY_URL -u \\\$DOCKER_USERNAME --password-stdin
