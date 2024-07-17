@@ -159,9 +159,11 @@ pipeline {
 
                                 # Stop and remove running containers if any
                                 RUNNING_CONTAINERS=$(docker ps -q)
+                                A_B = docker ps -a
                                 echo "docker ps -q"
                                 docker ps -q
                                 echo "RUNNING_CONTAINERS = $RUNNING_CONTAINERS"
+                                echo "A_B = $A_B"
                                 if [ -n "$RUNNING_CONTAINERS" ]; then
                                     docker stop $RUNNING_CONTAINERS
                                 fi
