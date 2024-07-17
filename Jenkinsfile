@@ -166,8 +166,8 @@ pipeline {
 
                                 docker_container_command="docker ps -aq -f name=nestjs-docker"
 
-                                docker stop $(docker ps -aq -f name=nestjs-docker) || true
-                                docker rm $(docker ps -aq -f name=nestjs-docker) || true
+                                docker stop \$(docker ps -aq -f name=nestjs-docker) || true
+                                docker rm \$(docker ps -aq -f name=nestjs-docker) || true
 
                                 docker ps 
                                 docker ps -a
