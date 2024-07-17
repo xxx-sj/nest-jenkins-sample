@@ -169,7 +169,7 @@ pipeline {
 
                                 # Run the new container
                                 echo "Running docker container: $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG"
-                                docker run -d -p 3000:3000 --name nestjs-docker $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
+                                docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
 
                                 # Clean up unused images
                                 docker image prune -f
