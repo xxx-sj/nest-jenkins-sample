@@ -143,27 +143,36 @@ pipeline {
         
         stage('Deploy to Public Subnet') {
             steps {
-                script {
-                    sh 'whoami'
-                    sh 'pwd'
-            
-                    sh '''
-                        ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
-                        docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD} ${REGISTRY_URL}
-                        docker pull ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
-                        echo "docker ps -q"
-                        docker ps -q
-                        docker stop $(docker ps -q)
-                        echo "docker ps -a -q"
-                        docker ps -a -q
-                        docker rm $(docker ps -a -q)
-                    
-                        docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
-                        docker image prune -f
-                        EOF
-                    '''
+                sh '''
+                    ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
+                    docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD} ${REGISTRY_URL}
+                    docker pull ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
 
-                }
+                    # Stop and remove running containers if any
+                    RUNNING_CONTAINERS=$(docker ps -q)
+                    if [ -n "$RUNNING_CONTAINERS" ]; then
+                        docker stop $RUNNING_CONTAINERS
+                    fi
+
+                    # Remove all containers if any
+                    ALL_CONTAINERS=$(docker ps -a -q)
+                    if [ -n "$ALL_CONTAINERS" ]; then
+                        docker rm $ALL_CONTAINERS
+                    fi
+
+                    # Remove the existing container if it exists
+                    EXISTING_CONTAINER=$(docker ps -a -q -f name=nestjs-docker)
+                    if [ -n "$EXISTING_CONTAINER" ]; then
+                        docker rm -f nestjs-docker
+                    fi
+
+                    # Run the new container
+                    docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
+
+                    # Clean up unused images
+                    docker image prune -f
+                    EOF
+                '''
             }
 
             post {
