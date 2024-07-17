@@ -169,7 +169,7 @@ pipeline {
                                 docker rm docker_container_command || true
 
                                 docker ps 
-                                docker ps
+                                docker ps -a
                             
 
                                 # Run the new container
