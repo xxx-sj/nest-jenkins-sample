@@ -151,6 +151,10 @@ pipeline {
                         ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
                         docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD} ${REGISTRY_URL}
                         docker pull ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
+                        echo "docker ps -q"
+                        docker ps -q
+                        echo "docker ps -a -q"
+                        docker ps -a -q
                         if [ $(docker ps -q) ]; then
                             docker stop $(docker ps -q)
                         fi
