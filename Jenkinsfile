@@ -171,9 +171,11 @@ pipeline {
                                 echo "Running docker container: $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG"
                                 docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
 
+                                echo "running container"
+                                docker ps
+
                                 # Clean up unused images
                                 docker image prune -f
-
 EOF
                         '''
                     }
@@ -195,8 +197,6 @@ EOF
             sh '''
                 echo "Final cleanup..."
                 docker system prune -a -f --volumes
-                rm -rf /tmp/*
-                rm -rf /var/cache/apk/*
                 echo "Pipeline completed"
             '''
         }
