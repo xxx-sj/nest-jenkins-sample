@@ -164,13 +164,6 @@ pipeline {
                         docker rm -f $ALL_CONTAINERS
                     fi
 
-                    # Remove the existing container if it exists
-                    EXISTING_CONTAINER=$(docker ps -a -q -f name=nestjs-docker)
-                    echo "EXISTING_CONTAINER = $EXISTING_CONTAINER"
-                    if [ -n "$EXISTING_CONTAINER" ]; then
-                        docker rm -f nestjs-docker
-                    fi
-
                     echo "docker ps"
                     docker ps
                     echo "docker ps -a"
@@ -187,10 +180,6 @@ pipeline {
             post {
                 failure {
                     sh 'echo "Deploy failed"'
-                }
-                always {
-                    sh 'echo "Final cleanup..."'
-                    sh 'docker system prune -a -f --volumes'
                 }
             }
         }
