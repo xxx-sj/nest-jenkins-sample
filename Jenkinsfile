@@ -146,30 +146,17 @@ pipeline {
                 script {
                     sh 'whoami'
                     sh 'pwd'
-                    sh '''
-                            ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
-                            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ${REGISTRY_URL}
-                            docker pull ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
-                            docker stop \$(docker ps -a -q) || true
-                            docker rm \$(docker ps -a -q) || true
-                            docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
-                            docker image prune -f
-                            EOF
-                        '''
-                        
-                    // withCredentials([sshUserPrivateKey(credentialsId: SSH_CREDENTIALS_ID, keyFileVariable: 'SSH_KEY')]) {
-                    //     // ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
-                    //     sh '''
-                    //         ssh ${SSH_USER}@${SERVER_IP} << EOF
-                    //         docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ${REGISTRY_URL}
-                    //         docker pull ${REGISTRY_URL}/${DOCKER_IMAGE}:${TAG_IMAGE}
-                    //         docker stop $(docker ps -a -q) || true
-                    //         docker rm $(docker ps -a -q) || true
-                    //         docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${DOCKER_IMAGE}:${TAG_IMAGE}
-                    //         docker image prune -f
-                    //         EOF
-                    //     '''
-                    // }
+
+                    sh """
+                        ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
+                        docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD} ${REGISTRY_URL}
+                        docker pull ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
+                        docker stop \$(docker ps -q) || true
+                        docker rm \$(docker ps -a -q) || true
+                        docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
+                        docker image prune -f
+                        EOF
+                    """
                 }
             }
 
