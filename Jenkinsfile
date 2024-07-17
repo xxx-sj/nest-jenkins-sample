@@ -7,7 +7,6 @@ pipeline {
         SSH_CREDENTIALS_ID = 'ncloud-ssh-credentials'
         DOCKER_IMAGE = 'nest-server'
         TAG_IMAGE = 'dev-nest-server'
-        // PUBLIC_SUBNET_IP = 'your-public-subnet-ip'
         SERVER_IP = '192.168.1.6'
         IMAGE_TAG = "${env.BUILD_ID}" // 각 빌드마다 고유한 ID를 태그로 사용
         SSH_USER = 'root'
@@ -100,7 +99,6 @@ pipeline {
         stage('Tag Docker Image') {
             steps {
                 script {
-                    //TODO docker tag nest-server:48 dev-overay-studio-server.kr.ncr.ntruss.com/sample/dev-nest-server:48 will tag change
                     sh "docker tag ${DOCKER_IMAGE}:${IMAGE_TAG} ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                 }
             }
@@ -143,50 +141,54 @@ pipeline {
         
         stage('Deploy') {
             steps {
-                sh """
-                    ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} '
-                    export DOCKER_USERNAME=${DOCKER_USERNAME}
-                    export DOCKER_PASSWORD=${DOCKER_PASSWORD}
-                    export REGISTRY_URL=${REGISTRY_URL}
-                    export TAG_IMAGE=${TAG_IMAGE}
-                    export IMAGE_TAG=${IMAGE_TAG}
+                script {
+                    withCredentials([sshUserPrivateKey(usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh """
+                            ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} '
+                            export DOCKER_USERNAME=${DOCKER_USERNAME}
+                            export DOCKER_PASSWORD=${DOCKER_PASSWORD}
+                            export REGISTRY_URL=${REGISTRY_URL}
+                            export TAG_IMAGE=${TAG_IMAGE}
+                            export IMAGE_TAG=${IMAGE_TAG}
 
-                    set -x
+                            set -x
 
-                    docker login -u \${DOCKER_USERNAME} -p \${DOCKER_PASSWORD} \${REGISTRY_URL}
-                    docker pull \${REGISTRY_URL}/\${TAG_IMAGE}:\${IMAGE_TAG}
+                            docker login -u \${DOCKER_USERNAME} -p \${DOCKER_PASSWORD} \${REGISTRY_URL}
+                            docker pull \${REGISTRY_URL}/\${TAG_IMAGE}:\${IMAGE_TAG}
 
-                    # Stop and remove running containers if any
-                    RUNNING_CONTAINERS=\$(docker ps -q)
-                    echo "docker ps -q"
-                    docker ps -q
-                    echo "RUNNING_CONTAINERS = \$RUNNING_CONTAINERS"
-                    if [ -n "\$RUNNING_CONTAINERS" ]; then
-                        docker stop \$RUNNING_CONTAINERS
-                    fi
+                            # Stop and remove running containers if any
+                            RUNNING_CONTAINERS=\$(docker ps -q)
+                            echo "docker ps -q"
+                            docker ps -q
+                            echo "RUNNING_CONTAINERS = \$RUNNING_CONTAINERS"
+                            if [ -n "\$RUNNING_CONTAINERS" ]; then
+                                docker stop \$RUNNING_CONTAINERS
+                            fi
 
-                    # Remove all containers if any
-                    ALL_CONTAINERS=\$(docker ps -a -q)
-                    echo "ALL_CONTAINERS = \$ALL_CONTAINERS"
-                    if [ -n "\$ALL_CONTAINERS" ]; then
-                        docker rm -f \$ALL_CONTAINERS
-                    fi
+                            # Remove all containers if any
+                            ALL_CONTAINERS=\$(docker ps -a -q)
+                            echo "ALL_CONTAINERS = \$ALL_CONTAINERS"
+                            if [ -n "\$ALL_CONTAINERS" ]; then
+                                docker rm -f \$ALL_CONTAINERS
+                            fi
 
-                    echo "docker ps"
-                    docker ps
-                    echo "docker ps -a"
-                    docker ps -a
+                            echo "docker ps"
+                            docker ps
+                            echo "docker ps -a"
+                            docker ps -a
 
-                    # Run the new container
-                    echo "Running docker container: \${REGISTRY_URL}/\${TAG_IMAGE}:\${IMAGE_TAG}"
-                    docker run -d -p 3000:3000 --name nestjs-docker \${REGISTRY_URL}/\${TAG_IMAGE}:\${IMAGE_TAG}
+                            # Run the new container
+                            echo "Running docker container: \${REGISTRY_URL}/\${TAG_IMAGE}:\${IMAGE_TAG}"
+                            docker run -d -p 3000:3000 --name nestjs-docker \${REGISTRY_URL}/\${TAG_IMAGE}:\${IMAGE_TAG}
 
-                    # Clean up unused images
-                    docker image prune -f
+                            # Clean up unused images
+                            docker image prune -f
 
-                    set +x
-                    '
-                """
+                            set +x
+                            '
+                        """
+                    }
+                }
             }
             post {
                 failure {
@@ -201,8 +203,8 @@ pipeline {
             sh '''
                 echo "Final cleanup..."
                 docker system prune -a -f --volumes
-                sudo rm -rf /tmp/*
-                sudo rm -rf /var/cache/apk/*
+                rm -rf /tmp/*
+                rm -rf /var/cache/apk/*
                 echo "Pipeline completed"
             '''
         }
