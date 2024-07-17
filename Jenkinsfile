@@ -143,8 +143,8 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh '''
-                            ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+                        sh """
+                            ssh -T -i ${KEY_PATH} -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} <<EOF
                                 export DOCKER_USERNAME=${DOCKER_USERNAME}
                                 export DOCKER_PASSWORD=${DOCKER_PASSWORD}
                                 export REGISTRY_URL=${REGISTRY_URL}
@@ -155,11 +155,11 @@ pipeline {
                                 docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $REGISTRY_URL
                                 docker pull $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
 
-                                ABC="docker tst!1"
+                                ABC="docker test!1"
                                 echo "$ABC"
 
                                 # Stop and remove existing container with the same name
-                                if [ "$(docker ps -aq -f name=nestjs-docker)" ]; then
+                                if [ "\$(docker ps -aq -f name=nestjs-docker)" ]; then
                                     docker stop nestjs-docker
                                     docker rm nestjs-docker
                                     echo "running container"
@@ -169,7 +169,7 @@ pipeline {
 
                                 # Run the new container
                                 echo "Running docker container: $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG"
-                                docker run -d -p 3000:3000 --name nestjs-docker \${REGISTRY_URL}/\${TAG_IMAGE}:\${IMAGE_TAG}
+                                docker run -d -p 3000:3000 --name nestjs-docker $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
 
                                 echo "running container"
                                 docker ps
@@ -177,7 +177,7 @@ pipeline {
                                 # Clean up unused images
                                 docker image prune -f
 EOF
-                        '''
+                        """
                     }
                 }
             }
