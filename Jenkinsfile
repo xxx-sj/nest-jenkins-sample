@@ -157,18 +157,21 @@ pipeline {
 
                                 # Running containers
                                 echo "docker ps -q"
-                                docker ps -q
-                                RUNNING_CONTAINERS=$(docker ps -q)
-                                echo "RUNNING_CONTAINERS = $RUNNING_CONTAINERS"
+                                RUNNING_CONTAINERS=\$(docker ps -q)
+                                echo "RUNNING_CONTAINERS = \$RUNNING_CONTAINERS"
+
+                                # Stop running containers
+                                if [ -n "\$RUNNING_CONTAINERS" ]; then
+                                    docker stop \$RUNNING_CONTAINERS
+                                fi
 
                                 # Remove all containers
                                 echo "docker ps -a -q"
-                                docker ps -a -q
-                                ALL_CONTAINERS=$($docker_path ps -a -q)
-                                echo "ALL_CONTAINERS = $ALL_CONTAINERS"
+                                ALL_CONTAINERS=\$(docker ps -a -q)
+                                echo "ALL_CONTAINERS = \$ALL_CONTAINERS"
 
-                                if [ -n "$ALL_CONTAINERS" ]; then
-                                    docker rm -f $ALL_CONTAINERS
+                                if [ -n "\$ALL_CONTAINERS" ]; then
+                                    docker rm -f \$ALL_CONTAINERS
                                 fi
 
                                 echo "docker ps"
