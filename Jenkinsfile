@@ -156,13 +156,21 @@ pipeline {
                                 docker pull \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG
 
                                 # Stop and remove existing container with the same name
-                                if [ "\$(docker ps -aq -f name=nestjs-docker)" ]; then
-                                    docker stop nestjs-docker
-                                    docker rm nestjs-docker
-                                    echo "running container"
-                                    docker ps 
-                                    docker ps -a
+                                
+                                echo "======"
+                                docker ps -aq -f name=nestjs-docker
+
+                                if [ "$(docker ps -aq -f name=nestjs-docker)" ]; then
+                                    echo "hello"
                                 fi
+
+                                docker_container_command="docker ps -aq -f name=nestjs-docker"
+                                docker stop docker_container_command || true
+                                docker rm docker_container_command || true
+
+                                docker ps 
+                                docker ps
+                            
 
                                 # Run the new container
                                 echo "Running docker container: \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG"
