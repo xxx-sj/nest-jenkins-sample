@@ -7,9 +7,10 @@ pipeline {
         SSH_CREDENTIALS_ID = 'ncloud-ssh-credentials'
         DOCKER_IMAGE = 'nest-server'
         TAG_IMAGE = 'dev-nest-server'
-        PUBLIC_SUBNET_IP = 'your-public-subnet-ip'
+        // PUBLIC_SUBNET_IP = 'your-public-subnet-ip'
+        SERVER_IP = '192.168.1.6'
         IMAGE_TAG = "${env.BUILD_ID}" // 각 빌드마다 고유한 ID를 태그로 사용
-        SSH_USER = 'your-username'
+        SSH_USER = 'root'
         GITHUB_URL = 'https://github.com/xxx-sj/nest-jenkins-sample.git'
     }
 
@@ -113,15 +114,12 @@ pipeline {
 
         stage('Push to ncloud registry') {
             steps {
-                script {
-
-                    // sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD} dev-overay-studio-server.kr.ncr.ntruss.com"
-                    // sh "docker push ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
-                    // sh "docker pull dev-overay-studio-server.kr.ncr.ntruss.com/<TARGET_IMAGE[:TAG]>"
-                    
+                script {        
                     withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh 'echo $DOCKER_PASSWORD | docker login $REGISTRY_URL -u $DOCKER_USERNAME --password-stdin'
                     }
+                
+                    sh "echo image pushed is ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                     sh "docker push ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}"
                 }
             }
@@ -133,15 +131,32 @@ pipeline {
             }
         }
 
+        stage("Remove images") {
+            steps {
+                script {
+                    sh 'echo "docker images"'
+                    sh 'echo remove images all'
+                    sh 'echo docker '
+                }
+            }
+        }
+
         stage('Deploy to Public Subnet') {
             steps {
-                sshagent([SSH_CREDENTIALS_ID]) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${SSH_USER}@${PUBLIC_SUBNET_IP} << EOF
-                    docker pull ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
-                    docker run -d -p 3001:3001 ${REGISTRY_URL}/${TAG_IMAGE}:${IMAGE_TAG}
-                    EOF
-                    """
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: SSH_CREDENTIALS_ID, keyFileVariable: 'SSH_KEY')]) {
+                        // ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
+                        sh '''
+                            ssh ${SSH_USER}@${SERVER_IP} << EOF
+                            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ${REGISTRY_URL}
+                            docker pull ${REGISTRY_URL}/${DOCKER_IMAGE}:${TAG_IMAGE}
+                            docker stop $(docker ps -a -q) || true
+                            docker rm $(docker ps -a -q) || true
+                            docker run -d -p 3000:3000 --name nestjs-docker ${REGISTRY_URL}/${DOCKER_IMAGE}:${TAG_IMAGE}
+                            docker image prune -f
+                            EOF
+                        '''
+                    }
                 }
             }
 
