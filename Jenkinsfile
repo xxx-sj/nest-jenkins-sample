@@ -155,9 +155,6 @@ pipeline {
                                 # Stop and remove existing container with the same name
                                 docker ps -aq -f name=nestjs-docker
 
-                                docker_container_command="docker ps -aq -f name=nestjs-docker"
-
-                                echo "it is??.. $docker_container_command"
                                 docker stop \\\$(docker ps -aq -f name=nestjs-docker) || true
                                 docker rm \\\$(docker ps -aq -f name=nestjs-docker) || true
 
