@@ -153,9 +153,9 @@ pipeline {
                                 export IMAGE_TAG=${IMAGE_TAG}
 
                                 echo "====================== docker login ==============================="
-                                echo "\$DOCKER_USERNAME \$DOCKER_PASSWORD \$REGISTRY_URL"
-                                echo \$DOCKER_PASSWORD | docker login \$REGISTRY_URL -u \$DOCKER_USERNAME --password-stdin
-                                docker pull \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG
+                                echo "$DOCKER_USERNAME $DOCKER_PASSWORD $REGISTRY_URL"
+                                echo $DOCKER_PASSWORD | docker login $REGISTRY_URL -u $DOCKER_USERNAME --password-stdin
+                                docker pull $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
                                 echo "======================================================="
 
                                 # Stop and remove existing container with the same name
@@ -164,15 +164,15 @@ pipeline {
                                 docker ps -aq -f name=nestjs-docker
                                 echo "======================================================="
 
-                                if [ "\$(docker ps -aq -f name=nestjs-docker)" ]; then
+                                if [ "$(docker ps -aq -f name=nestjs-docker)" ]; then
                                     echo "== test hello == "
                                 fi
 
                                 docker_container_command="docker ps -aq -f name=nestjs-docker"
 
                                 echo "====================== docker stop and rm =========================="
-                                docker stop \$(docker ps -aq -f name=nestjs-docker) || true
-                                docker rm \$(docker ps -aq -f name=nestjs-docker) || true
+                                docker stop $(docker ps -aq -f name=nestjs-docker) || true
+                                docker rm $(docker ps -aq -f name=nestjs-docker) || true
 
                                 docker ps 
                                 docker ps -a
@@ -181,14 +181,14 @@ pipeline {
 
                                 # Run the new container
                                 echo "==================== docker start ================================"
-                                echo "Running docker container: \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG"
-                                docker run -d -p 3000:3000 --name nestjs-docker \$REGISTRY_URL/\$TAG_IMAGE:\$IMAGE_TAG
+                                echo "Running docker container: $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG"
+                                docker run -d -p 3000:3000 --name nestjs-docker $REGISTRY_URL/$TAG_IMAGE:$IMAGE_TAG
                                 echo "======================================================="
 
                                 echo "===================== after running docker ============================="
                                 echo "running container"
                                 docker ps
-                                
+
                                 echo "======================================================="
 
                                 # Clean up unused images
