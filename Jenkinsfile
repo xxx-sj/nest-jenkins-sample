@@ -136,7 +136,7 @@ pipeline {
                 script {
                     sh 'echo "docker images"'
                     sh 'echo remove images all'
-                    sh 'echo docker '
+                    sh 'docker images prune -f -a'
                 }
             }
         }
@@ -144,7 +144,10 @@ pipeline {
         stage('Deploy to Public Subnet') {
             steps {
                 script {
-
+                    sh 'echo whoami'
+                    sh 'echo "whoami"'
+                    sh 'whoami'
+                    sh 'pwd'
                     sh '''
                             ssh -i ${KEY_PATH} ${SSH_USER}@${SERVER_IP} << EOF
                             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ${REGISTRY_URL}
