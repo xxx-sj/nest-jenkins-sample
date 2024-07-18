@@ -149,13 +149,12 @@ pipeline {
                                 export IMAGE_TAG=$IMAGE_TAG
                                 export PREV_IMAGE_TAG=\$(docker images --format "{{.Tag}}" $REGISTRY_URL/$TAG_IMAGE | head -n 2 | tail -n 1)
 
-                                echo \\\$DOCKER_PASSWORD | docker login \\\$REGISTRY_URL -u \\\$DOCKER_USERNAME --password-stdin
-                                docker pull \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
-
-
                                 # remove data
                                 docker container prune -f
                                 docker image prune -a -f
+                                
+                                echo \\\$DOCKER_PASSWORD | docker login \\\$REGISTRY_URL -u \\\$DOCKER_USERNAME --password-stdin
+                                docker pull \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
 
                                 # Stop and remove existing container with the same name
                                 // docker ps -aq -f name=nest-server
