@@ -161,13 +161,25 @@ pipeline {
                                 docker ps 
                                 docker ps -a
                             
-
                                 # Run the new container
                                 echo "Running docker container: \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG"
                                 docker run -d -p 3000:3000 --name nestjs-docker \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
 
-                                echo "running container"
-                                docker ps
+                                # Check if the container is ready to receive requests with a timeout of 1 minute
+                                echo "Checking if container is ready..."
+                                timeout=60
+                                interval=5
+                                elapsed=0
+                                while ! curl -s http://localhost:3000 > /dev/null; do
+                                    if [ \\\$elapsed -ge \\\$timeout ]; then
+                                        echo "Container failed to start within 1 minute."
+                                        exit 1
+                                    fi
+                                    echo "Waiting for container to be ready..."
+                                    sleep \\\$interval
+                                    elapsed=\\\$((elapsed + interval))
+                                done
+                                echo "Container is ready to receive requests."
 
                                 # Clean up unused images
                                 echo "=== clean image ==="
