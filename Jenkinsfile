@@ -147,23 +147,25 @@ pipeline {
                                 export REGISTRY_URL=$REGISTRY_URL
                                 export TAG_IMAGE=$TAG_IMAGE
                                 export IMAGE_TAG=$IMAGE_TAG
-
+                                export PREV_IMAGE_TAG=\$(docker images --format "{{.Tag}}" $REGISTRY_URL/$TAG_IMAGE | head -n 2 | tail -n 1)
 
                                 echo \\\$DOCKER_PASSWORD | docker login \\\$REGISTRY_URL -u \\\$DOCKER_USERNAME --password-stdin
                                 docker pull \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
 
+
+                                # remove data
+                                docker container prune -f
+                                docker image prune -a -f
+
                                 # Stop and remove existing container with the same name
-                                docker ps -aq -f name=nestjs-docker
+                                // docker ps -aq -f name=nest-server
 
-                                docker stop \\\$(docker ps -aq -f name=nestjs-docker) || true
-                                docker rm \\\$(docker ps -aq -f name=nestjs-docker) || true
-
-                                docker ps 
-                                docker ps -a
+                                docker stop \\\$(docker ps -aq -f name=nest-server) || true
+                                docker rm \\\$(docker ps -aq -f name=nest-server) || true
                             
                                 # Run the new container
                                 echo "Running docker container: \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG"
-                                docker run -d -p 3000:3000 --name nestjs-docker \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
+                                docker run -d -p 3000:3000 --name nest-server \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
 
                                 # Check if the container is ready to receive requests with a timeout of 1 minute
                                 echo "Checking if container is ready..."
@@ -172,18 +174,20 @@ pipeline {
                                 elapsed=0
                                 while ! curl -s http://localhost:3000 > /dev/null; do
                                     if [ \\\$elapsed -ge \\\$timeout ]; then
-                                        echo "Container failed to start within 1 minute."
+                                        echo "Container failed to start within 1 minute. Rolling back..."
+                                        echo "\\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$PREV_IMAGE_TAG"
+                                        docker stop nest-server || true
+                                        docker rm nest-server || true
+                                        // docker run -d -p 3000:3000 --name nest-server -v $VOLUME_NAME:/app/data \$REGISTRY_URL/\$TAG_IMAGE:\$PREV_IMAGE_TAG
+                                        docker run -d -p 3000:3000 --name nest-server  \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$PREV_IMAGE_TAG
                                         exit 1
                                     fi
                                     echo "Waiting for container to be ready..."
                                     sleep \\\$interval
                                     elapsed=\\\$((elapsed + interval))
                                 done
+                                echo "\\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$PREV_IMAGE_TAG"
                                 echo "Container is ready to receive requests."
-
-                                # Clean up unused images
-                                echo "=== clean image ==="
-                                docker image prune -a -f
 EOF
                         '''
                     }
