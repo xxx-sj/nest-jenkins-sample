@@ -6,7 +6,8 @@ pipeline {
         REGISTRY_CREDENTIALS_ID = 'ncloud-credentials'
         DOCKER_IMAGE = 'nest-server'
         TAG_IMAGE = 'dev-nest-server'
-        SERVER_IP = '192.168.100.6'
+        // SERVER_IP = '192.168.100.6'
+        SERVER_IP = '192.168.1.6'
         IMAGE_TAG = "${env.BUILD_ID}" // 각 빌드마다 고유한 ID를 태그로 사용
         SSH_USER = 'root'
         GITHUB_URL = 'https://github.com/xxx-sj/nest-jenkins-sample.git'
