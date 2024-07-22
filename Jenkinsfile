@@ -6,7 +6,7 @@ pipeline {
         REGISTRY_CREDENTIALS_ID = 'ncloud-credentials'
         DOCKER_IMAGE = 'nest-server'
         TAG_IMAGE = 'dev-nest-server'
-        SERVER_IP = '192.168.1.6'
+        SERVER_IP = '192.168.100.6'
         IMAGE_TAG = "${env.BUILD_ID}" // 각 빌드마다 고유한 ID를 태그로 사용
         SSH_USER = 'root'
         GITHUB_URL = 'https://github.com/xxx-sj/nest-jenkins-sample.git'
@@ -149,15 +149,19 @@ pipeline {
                                 export IMAGE_TAG=$IMAGE_TAG
                                 export PREV_IMAGE_TAG=\$(docker images --format "{{.Tag}}" $REGISTRY_URL/$TAG_IMAGE | head -n 2 | tail -n 1)
 
+                                #prev_image_tag
+                                echo "PREV_IMAGE_TAG"
+                                echo "\\\$PREV_IMAGE_TAG"
+
                                 # remove data
                                 docker container prune -f
                                 docker image prune -a -f
-                                
+
                                 echo \\\$DOCKER_PASSWORD | docker login \\\$REGISTRY_URL -u \\\$DOCKER_USERNAME --password-stdin
                                 docker pull \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$IMAGE_TAG
 
                                 # Stop and remove existing container with the same name
-                                // docker ps -aq -f name=nest-server
+                                # docker ps -aq -f name=nest-server
 
                                 docker stop \\\$(docker ps -aq -f name=nest-server) || true
                                 docker rm \\\$(docker ps -aq -f name=nest-server) || true
@@ -177,7 +181,7 @@ pipeline {
                                         echo "\\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$PREV_IMAGE_TAG"
                                         docker stop nest-server || true
                                         docker rm nest-server || true
-                                        // docker run -d -p 3000:3000 --name nest-server -v $VOLUME_NAME:/app/data \$REGISTRY_URL/\$TAG_IMAGE:\$PREV_IMAGE_TAG
+                                        # docker run -d -p 3000:3000 --name nest-server -v $VOLUME_NAME:/app/data \$REGISTRY_URL/\$TAG_IMAGE:\$PREV_IMAGE_TAG
                                         docker run -d -p 3000:3000 --name nest-server  \\\$REGISTRY_URL/\\\$TAG_IMAGE:\\\$PREV_IMAGE_TAG
                                         exit 1
                                     fi
